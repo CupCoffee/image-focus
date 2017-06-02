@@ -23,8 +23,23 @@ class FocusPoint
      */
     public function loadScripts()
     {
-        wp_enqueue_script('image-focus-js', IMAGEFOCUS_ASSETS . 'js/focuspoint.min.js', ['jquery']);
+        wp_enqueue_script('focuspoint-js', IMAGEFOCUS_ASSETS . 'js/focuspoint.min.js', ['jquery']);
+        wp_localize_script('focuspoint-js', 'focusPointL10n', $this->focusPointL10n());
+        wp_enqueue_script('focuspoint-js');
+
         wp_enqueue_style('image-focus-css', IMAGEFOCUS_ASSETS . 'css/style.min.css');
+    }
+
+    /**
+     * Return all the translation strings necessary for the javascript
+     *
+     * @return array
+     */
+    private function focusPointL10n()
+    {
+        return [
+            'cropButton' => __('Crop image', IMAGEFOCUS_TEXTDOMAIN),
+        ];
     }
 
     /**
@@ -33,7 +48,9 @@ class FocusPoint
     public function initializeCrop()
     {
         // Check if we've got all the data
-        if (null === $_POST['percentageX'] || null === $_POST['percentageY']) {
+        $image = $_POST['image'];
+
+        if (null === $image['focus']['x'] || null === $image['focus']['y']) {
             die(
             json_encode(
                 [
@@ -44,9 +61,9 @@ class FocusPoint
         }
 
         $crop = new Crop();
-        $crop->cropImage(5, $_POST['percentageX'], $_POST['percentageY']);
+        $crop->cropImage($image['attachmentId'], $image['focus']['x'], $image['focus']['y']);
 
-        // Return succes
+        // Return success
         die(
         json_encode(
             [
